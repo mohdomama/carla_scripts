@@ -1097,7 +1097,7 @@ def game_loop(args):
 
         clock = pygame.time.Clock()
         while True:
-            clock.tick_busy_loop(60)
+            clock.tick_busy_loop(30)
             if controller.parse_events(client, world, clock):
                 return
             world.tick(clock)
