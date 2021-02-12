@@ -16,6 +16,16 @@ import carla
 import argparse
 import logging
 import random
+import numpy as np
+import open3d as o3d
+
+
+def process_point_cloud(point_cloud_carla):
+    point_cloud_carla.save_to_disk('lidar_output/%.6d.ply' % point_cloud_carla.frame)
+    
+    # Creating a numpy array as well. To be used later    
+    pcd = np.copy(np.frombuffer(point_cloud_carla.raw_data, dtype=np.dtype('float32')))
+    pcd = np.reshape(pcd, (int(pcd.shape[0] / 4), 4))
 
 
 def main():
@@ -79,100 +89,24 @@ def main():
         else: 
             logging.warning('Could not found any spawn points')
        
-
         # --------------
-        # Add a RGB camera sensor to ego vehicle. 
+        # Add a new LIDAR sensor to my ego
         # --------------
-        """
-        cam_bp = None
-        cam_bp = world.get_blueprint_library().find('sensor.camera.rgb')
-        cam_bp.set_attribute("image_size_x",str(1920))
-        cam_bp.set_attribute("image_size_y",str(1080))
-        cam_bp.set_attribute("fov",str(105))
-        cam_location = carla.Location(2,0,1)
-        cam_rotation = carla.Rotation(0,180,0)
-        cam_transform = carla.Transform(cam_location,cam_rotation)
-        ego_cam = world.spawn_actor(cam_bp,cam_transform,attach_to=ego_vehicle, attachment_type=carla.AttachmentType.Rigid)
-        ego_cam.listen(lambda image: image.save_to_disk('~/tutorial/output/%.6d.jpg' % image.frame))
-        """
-
-        # --------------
-        # Add collision sensor to ego vehicle. 
-        # --------------
-        """
-        col_bp = world.get_blueprint_library().find('sensor.other.collision')
-        col_location = carla.Location(0,0,0)
-        col_rotation = carla.Rotation(0,0,0)
-        col_transform = carla.Transform(col_location,col_rotation)
-        ego_col = world.spawn_actor(col_bp,col_transform,attach_to=ego_vehicle, attachment_type=carla.AttachmentType.Rigid)
-        def col_callback(colli):
-            print("Collision detected:\n"+str(colli)+'\n')
-        ego_col.listen(lambda colli: col_callback(colli))
-        """
-
-        # --------------
-        # Add Lane invasion sensor to ego vehicle. 
-        # --------------
-        """
-        lane_bp = world.get_blueprint_library().find('sensor.other.lane_invasion')
-        lane_location = carla.Location(0,0,0)
-        lane_rotation = carla.Rotation(0,0,0)
-        lane_transform = carla.Transform(lane_location,lane_rotation)
-        ego_lane = world.spawn_actor(lane_bp,lane_transform,attach_to=ego_vehicle, attachment_type=carla.AttachmentType.Rigid)
-        def lane_callback(lane):
-            print("Lane invasion detected:\n"+str(lane)+'\n')
-        ego_lane.listen(lambda lane: lane_callback(lane))
-        """
-
-        # --------------
-        # Add Obstacle sensor to ego vehicle. 
-        # --------------
-        """
-        obs_bp = world.get_blueprint_library().find('sensor.other.obstacle')
-        obs_bp.set_attribute("only_dynamics",str(True))
-        obs_location = carla.Location(0,0,0)
-        obs_rotation = carla.Rotation(0,0,0)
-        obs_transform = carla.Transform(obs_location,obs_rotation)
-        ego_obs = world.spawn_actor(obs_bp,obs_transform,attach_to=ego_vehicle, attachment_type=carla.AttachmentType.Rigid)
-        def obs_callback(obs):
-            print("Obstacle detected:\n"+str(obs)+'\n')
-        ego_obs.listen(lambda obs: obs_callback(obs))
-        """
-
-        # --------------
-        # Add GNSS sensor to ego vehicle. 
-        # --------------
-        """
-        gnss_bp = world.get_blueprint_library().find('sensor.other.gnss')
-        gnss_location = carla.Location(0,0,0)
-        gnss_rotation = carla.Rotation(0,0,0)
-        gnss_transform = carla.Transform(gnss_location,gnss_rotation)
-        gnss_bp.set_attribute("sensor_tick",str(3.0))
-        ego_gnss = world.spawn_actor(gnss_bp,gnss_transform,attach_to=ego_vehicle, attachment_type=carla.AttachmentType.Rigid)
-        def gnss_callback(gnss):
-            print("GNSS measure:\n"+str(gnss)+'\n')
-        ego_gnss.listen(lambda gnss: gnss_callback(gnss))
-        """
-
-        # --------------
-        # Add IMU sensor to ego vehicle. 
-        # --------------
-        """
-        imu_bp = world.get_blueprint_library().find('sensor.other.imu')
-        imu_location = carla.Location(0,0,0)
-        imu_rotation = carla.Rotation(0,0,0)
-        imu_transform = carla.Transform(imu_location,imu_rotation)
-        imu_bp.set_attribute("sensor_tick",str(3.0))
-        ego_imu = world.spawn_actor(imu_bp,imu_transform,attach_to=ego_vehicle, attachment_type=carla.AttachmentType.Rigid)
-        def imu_callback(imu):
-            print("IMU measure:\n"+str(imu)+'\n')
-        ego_imu.listen(lambda imu: imu_callback(imu))
-        """
+        lidar_cam = None
+        lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
+        lidar_bp.set_attribute('channels',str(32))
+        lidar_bp.set_attribute('points_per_second',str(90000))
+        lidar_bp.set_attribute('rotation_frequency',str(40))
+        lidar_bp.set_attribute('range',str(20))
+        lidar_location = carla.Location(0,0,2)
+        lidar_rotation = carla.Rotation(0,0,0)
+        lidar_transform = carla.Transform(lidar_location,lidar_rotation)
+        lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
+        lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud))
 
         # --------------
         # Place spectator on ego spawning
         # --------------
-        
         # spectator = world.get_spectator()
         # world_snapshot = world.wait_for_tick() 
         # spectator.set_transform(ego_vehicle.get_transform())
@@ -184,12 +118,9 @@ def main():
         
         ego_vehicle.set_autopilot(True)
         
-
-
-
-        #
+        # --------------
         # Dummy Actor for spectator
-        #
+        # --------------
 
         dummy_bp = world.get_blueprint_library().find('sensor.camera.rgb')
         dummy_transform = carla.Transform(carla.Location(x=-10, z=5))
@@ -200,7 +131,9 @@ def main():
         # --------------
         # Game loop. Prevents the script from finishing.
         # --------------
-        while True:
+        for i in range(100):
+            if i == 0:
+                print(ego_vehicle.get_transform())
             world_snapshot = world.wait_for_tick() 
             spectator.set_transform(dummy.get_transform())
 
@@ -228,7 +161,14 @@ def main():
             if ego_imu is not None:
                 ego_imu.stop()
                 ego_imu.destroy()
+            if lidar_sen is not None:
+                lidar_sen.stop()
+                lidar_sen.destroy()
+            if dummy is not None:
+                dummy.stop()
+                dummy.destroy()
             ego_vehicle.destroy()
+
 
 if __name__ == '__main__':
 
