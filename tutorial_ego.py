@@ -18,6 +18,7 @@ import logging
 import random
 import numpy as np
 import open3d as o3d
+from teleop import Keyboard
 
 
 def process_point_cloud(point_cloud_carla):
@@ -45,7 +46,7 @@ def main():
     args = argparser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-
+    keyboard = Keyboard()
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
 
@@ -132,6 +133,10 @@ def main():
         # Game loop. Prevents the script from finishing.
         # --------------
         for i in range(100):
+            key = keyboard.read()
+            print(key)
+            if (key == '\x03'):
+                print('Control C')
             if i == 0:
                 print(ego_vehicle.get_transform())
             world_snapshot = world.wait_for_tick() 

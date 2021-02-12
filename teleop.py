@@ -5,8 +5,6 @@ from __future__ import print_function
 
 import threading
 import numpy as np
-
-
 import sys, select, termios, tty
 
 ACTION_KEYS = {
@@ -17,49 +15,61 @@ ACTION_KEYS = {
 }
 
 
-def getKey(key_timeout, settings):
-    tty.setraw(sys.stdin.fileno())
-    rlist, _, _ = select.select([sys.stdin], [], [], key_timeout)
-    if rlist:
-        key = sys.stdin.read(1)
-    else:
-        key = ''
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-    return key
+class Keyboard:
+    def __init__(self):
+        self.settings = termios.tcgetattr(sys.stdin)
+
+        self.key_timeout = 0.1
+        
+        # throttle, steer, break
+        self.control = np.array([0.0, 0.0, 0.0])
+
+        if self.key_timeout == 0.0:
+            self.key_timeout = None
+
+    def _get_key(self, key_timeout, settings):
+        tty.setraw(sys.stdin.fileno())
+        rlist, _, _ = select.select([sys.stdin], [], [], key_timeout)
+        if rlist:
+            key = sys.stdin.read(1)
+        else:
+            key = ''
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+        return key
+
+    def read(self):
+        try:
+            key = self._get_key(self.key_timeout, self.settings)
+            if key in ACTION_KEYS:
+                self.control += ACTION_KEYS[key]
+                self.control = np.clip(self.control, -1, 1)
+
+            else:
+                self.control = np.array([0.0, 0.0, 0.0])
+                
+                if (key == '\x03'):
+                    print('Control C')
+
+            return key
+
+        except Exception as e:
+            print(e)
+
+        
+        
+    def teardown(self):
+        # What is this?
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+
 
 
 def main():
-    settings = termios.tcgetattr(sys.stdin)
-
-    key_timeout = 0.1
-    
-    # throttle, steer, break
-    control = np.array([0.0, 0.0, 0.0])
-
-    if key_timeout == 0.0:
-        key_timeout = None
-
-    print('here')
-
-    try:
-        while(1):
-            key = getKey(key_timeout, settings)
-            if key in ACTION_KEYS:
-                control += ACTION_KEYS[key]
-                control = np.clip(control, -1, 1)
-
-            else:
-                control = np.array([0.0, 0.0, 0.0])
-                
-                if (key == '\x03'):
-                    break
-
-            print(control)
-    except Exception as e:
-        print(e)
-
-    finally:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    keyboard = Keyboard()
+    while True:
+        key = keyboard.read()
+        if (key == '\x03'): # Control C
+            break
+        print(key)
 
 
 if __name__=="__main__":
