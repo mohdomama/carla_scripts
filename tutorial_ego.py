@@ -116,7 +116,7 @@ def main():
         # Dummy Actor for spectator
         # --------------
         dummy_bp = world.get_blueprint_library().find('sensor.camera.rgb')
-        dummy_transform = carla.Transform(carla.Location(x=-4, z=6), carla.Rotation(pitch=45.0))
+        dummy_transform = carla.Transform(carla.Location(x=-6, z=4), carla.Rotation(pitch=10.0))
         dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicle, attachment_type=carla.AttachmentType.SpringArm)
         spectator = world.get_spectator()
         spectator.set_transform(dummy.get_transform())
