@@ -1,6 +1,3 @@
-
-#!/usr/bin/env python
-
 from __future__ import print_function
 
 import threading
@@ -16,16 +13,12 @@ ACTION_KEYS = {
 
 
 class Keyboard:
-    def __init__(self):
+    def __init__(self, key_timeout):
         self.settings = termios.tcgetattr(sys.stdin)
-
-        self.key_timeout = 0.1
-        
-        # throttle, steer, break
-        self.control = np.array([0.0, 0.0, 0.0])
-
+        self.key_timeout = key_timeout
         if self.key_timeout == 0.0:
             self.key_timeout = None
+
 
     def _get_key(self, key_timeout, settings):
         tty.setraw(sys.stdin.fileno())
@@ -37,24 +30,15 @@ class Keyboard:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
         return key
 
+
     def read(self):
         try:
             key = self._get_key(self.key_timeout, self.settings)
-            if key in ACTION_KEYS:
-                self.control += ACTION_KEYS[key]
-                self.control = np.clip(self.control, -1, 1)
-
-            else:
-                self.control = np.array([0.0, 0.0, 0.0])
-                
-                if (key == '\x03'):
-                    print('Control C')
-
-            return key
 
         except Exception as e:
             print(e)
 
+        return key
         
         
     def teardown(self):

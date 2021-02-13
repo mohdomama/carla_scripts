@@ -2,17 +2,7 @@ import glob
 import os
 import sys
 import time
-
-# try:
-#     sys.path.append(glob.glob('../carla/dist/carla-*%d.%d-%s.egg' % (
-#         sys.version_info.major,
-#         sys.version_info.minor,
-#         'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
-# except IndexError:
-#     pass
-
 import carla
-
 import argparse
 import logging
 import random
@@ -21,8 +11,18 @@ import open3d as o3d
 from teleop import Keyboard
 
 
+ACTION_KEYS = {
+    'w': np.array([0.05,     0, 0   ]),
+    'a': np.array([0.00, -0.05, 0   ]),
+    's': np.array([0.00,     0, 0.05]),
+    'd': np.array([0.00,  0.05, 0   ]),
+}
+
+SAVE_LIDAR_DATA = False
+
 def process_point_cloud(point_cloud_carla):
-    point_cloud_carla.save_to_disk('lidar_output/%.6d.ply' % point_cloud_carla.frame)
+    if SAVE_LIDAR_DATA:
+        point_cloud_carla.save_to_disk('lidar_output/%.6d.ply' % point_cloud_carla.frame)
     
     # Creating a numpy array as well. To be used later    
     pcd = np.copy(np.frombuffer(point_cloud_carla.raw_data, dtype=np.dtype('float32')))
@@ -46,7 +46,7 @@ def main():
     args = argparser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-    keyboard = Keyboard()
+    keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
 
@@ -105,42 +105,42 @@ def main():
         lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
         lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud))
 
-        # --------------
-        # Place spectator on ego spawning
-        # --------------
-        # spectator = world.get_spectator()
-        # world_snapshot = world.wait_for_tick() 
-        # spectator.set_transform(ego_vehicle.get_transform())
         
 
         # --------------
         # Enable autopilot for ego vehicle
         # --------------
-        
-        ego_vehicle.set_autopilot(True)
+        ego_vehicle.set_autopilot(False)
         
         # --------------
         # Dummy Actor for spectator
         # --------------
-
         dummy_bp = world.get_blueprint_library().find('sensor.camera.rgb')
-        dummy_transform = carla.Transform(carla.Location(x=-10, z=5))
-        dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicle)
+        dummy_transform = carla.Transform(carla.Location(x=-4, z=6), carla.Rotation(pitch=45.0))
+        dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicle, attachment_type=carla.AttachmentType.SpringArm)
         spectator = world.get_spectator()
         spectator.set_transform(dummy.get_transform())
+
+
+        control = np.array([0.0, 0.0, 0.0])
+
+
 
         # --------------
         # Game loop. Prevents the script from finishing.
         # --------------
-        for i in range(100):
-            key = keyboard.read()
-            print(key)
-            if (key == '\x03'):
-                print('Control C')
-            if i == 0:
-                print(ego_vehicle.get_transform())
+        count = -1
+        while True:
             world_snapshot = world.wait_for_tick() 
+            
+            count+= 1
+            if count == 0:
+                print(ego_vehicle.get_transform())
+                print('Ego Vehicle ID is: ', ego_vehicle.id)
+         
             spectator.set_transform(dummy.get_transform())
+            
+
 
     finally:
         # --------------
