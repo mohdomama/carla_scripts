@@ -10,17 +10,17 @@ def action_w(control):
 
 
 def action_a(control):
-    if control[1] > -1: control[1] -= 0.2
+    if control[1] > -1: control[1] -= 0.3
     return control
 
 
 def action_s(control):
-    if control[0] > -1: control[0] -= 0.05
+    if control[0] > 0: control[0] -= 0.05
     return control
 
 
 def action_d(control):
-    if control[1] < 1: control[1] += 0.2
+    if control[1] < 1: control[1] += 0.3
     return control
 
 
@@ -43,7 +43,6 @@ def main():
     ego_id = int(input('Enter Ego Vehicle ID:\n'))
 
     actor_list = world.get_actors()
-    print('Actor List: ', actor_list)
     
     ego_vehicle = actor_list.find(ego_id)
 
@@ -56,8 +55,11 @@ def main():
         elif (key == '\x03'):
             print('Control C')
             break
+        elif (key=='l'):
+            print(ego_vehicle.get_transform())
         else:
             control[1] = 0
+
         print(control)
         ego_vehicle.apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2]))
 

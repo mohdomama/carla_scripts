@@ -8,8 +8,9 @@ import logging
 import random
 import numpy as np
 import open3d as o3d
-from teleop import Keyboard
 
+from teleop import Keyboard
+from custom_locations import spawn_points_custom
 
 ACTION_KEYS = {
     'w': np.array([0.05,     0, 0   ]),
@@ -18,7 +19,7 @@ ACTION_KEYS = {
     'd': np.array([0.00,  0.05, 0   ]),
 }
 
-SAVE_LIDAR_DATA = False
+SAVE_LIDAR_DATA = True
 
 def process_point_cloud(point_cloud_carla):
     if SAVE_LIDAR_DATA:
@@ -27,6 +28,21 @@ def process_point_cloud(point_cloud_carla):
     # Creating a numpy array as well. To be used later    
     pcd = np.copy(np.frombuffer(point_cloud_carla.raw_data, dtype=np.dtype('float32')))
     pcd = np.reshape(pcd, (int(pcd.shape[0] / 4), 4))
+
+
+def custom_spawn(world):
+    vehicles_list = []
+    for idx, transform in enumerate(spawn_points_custom):
+        try: 
+            vehicle_bp = random.choice(world.get_blueprint_library().filter('vehicle.*'))
+            vehicle = world.spawn_actor(vehicle_bp, transform)
+            vehicle.set_autopilot(True)
+            vehicles_list.append(vehicle)
+        except Exception as e:
+            print(idx)
+            print(e)
+
+    return vehicles_list
 
 
 def main():
@@ -49,6 +65,7 @@ def main():
     keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
+    client.load_world('Town03')
 
     try:
 
@@ -71,7 +88,9 @@ def main():
         # --------------
         # Spawn ego vehicle
         # --------------
-        
+        # vehicles_list = custom_spawn(world)
+
+
         ego_bp = world.get_blueprint_library().find('vehicle.tesla.model3')
         ego_bp.set_attribute('role_name','ego')
         print('\nEgo role_name is set')
@@ -82,13 +101,12 @@ def main():
         spawn_points = world.get_map().get_spawn_points()
         number_of_spawn_points = len(spawn_points)
 
-        if 0 < number_of_spawn_points:
-            random.shuffle(spawn_points)
-            ego_transform = spawn_points[0]
-            ego_vehicle = world.spawn_actor(ego_bp,ego_transform)
-            print('\nEgo is spawned')
-        else: 
-            logging.warning('Could not found any spawn points')
+        # Near a cross road
+        ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
+                                       carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
+
+        ego_vehicle = world.spawn_actor(ego_bp, ego_transform)
+
        
         # --------------
         # Add a new LIDAR sensor to my ego
@@ -129,6 +147,7 @@ def main():
         # --------------
         # Game loop. Prevents the script from finishing.
         # --------------
+        input('Press Enter to Continue:')
         count = -1
         while True:
             world_snapshot = world.wait_for_tick() 
@@ -140,7 +159,8 @@ def main():
          
             spectator.set_transform(dummy.get_transform())
             
-
+    except Exception as e:
+        print(e)
 
     finally:
         # --------------
@@ -173,6 +193,10 @@ def main():
                 dummy.stop()
                 dummy.destroy()
             ego_vehicle.destroy()
+        
+        if vehicles_list is not None:
+            for vehicle in vehicles_list:
+                vehicle.destroy()
 
 
 if __name__ == '__main__':
