@@ -10,7 +10,7 @@ import numpy as np
 import open3d as o3d
 
 from teleop import Keyboard
-from custom_locations import spawn_points_custom
+# from custom_locations import spawn_points_custom
 
 ACTION_KEYS = {
     'w': np.array([0.05,     0, 0   ]),
@@ -19,10 +19,9 @@ ACTION_KEYS = {
     'd': np.array([0.00,  0.05, 0   ]),
 }
 
-SAVE_LIDAR_DATA = True
 
-def process_point_cloud(point_cloud_carla):
-    if SAVE_LIDAR_DATA:
+def process_point_cloud(point_cloud_carla, save_lidar_data):
+    if save_lidar_data:
         point_cloud_carla.save_to_disk('lidar_output/%.6d.ply' % point_cloud_carla.frame)
     
     # Creating a numpy array as well. To be used later    
@@ -59,13 +58,18 @@ def main():
         default=2000,
         type=int,
         help='TCP port to listen to (default: 2000)')
+    argparser.add_argument(
+        '--save_lidar_data', 
+        default=False, 
+        action='store_true',
+        help='To save lidar points or not'        )
     args = argparser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
-    client.load_world('Town03')
+    client.load_world('Town02')
 
     try:
 
@@ -102,8 +106,14 @@ def main():
         number_of_spawn_points = len(spawn_points)
 
         # Near a cross road
-        ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
-                                       carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
+        # ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
+        #                                carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
+
+        # Transform(Location(x=166.122238, y=106.114136, z=0.221694), Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
+
+
+        ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), 
+            carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
 
         ego_vehicle = world.spawn_actor(ego_bp, ego_transform)
 
@@ -111,17 +121,35 @@ def main():
         # --------------
         # Add a new LIDAR sensor to my ego
         # --------------
+
+        # Default
+        # lidar_cam = None
+        # lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
+        # lidar_bp.set_attribute('channels',str(32))
+        # lidar_bp.set_attribute('points_per_second',str(90000))
+        # lidar_bp.set_attribute('rotation_frequency',str(40))
+        # lidar_bp.set_attribute('range',str(20))
+        # lidar_location = carla.Location(0,0,2)
+        # lidar_rotation = carla.Rotation(0,0,0)
+        # lidar_transform = carla.Transform(lidar_location,lidar_rotation)
+        # lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
+        # lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
+
+        # VLP 16
         lidar_cam = None
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
-        lidar_bp.set_attribute('channels',str(32))
-        lidar_bp.set_attribute('points_per_second',str(90000))
-        lidar_bp.set_attribute('rotation_frequency',str(40))
-        lidar_bp.set_attribute('range',str(20))
+        lidar_bp.set_attribute('channels',str(16))
+        lidar_bp.set_attribute('rotation_frequency',str(20))
+        lidar_bp.set_attribute('range',str(100))
+        lidar_bp.set_attribute('lower_fov', str(-15))
+        lidar_bp.set_attribute('upper_fov', str(15))
+        lidar_bp.set_attribute('points_per_second',str(300000))
+
         lidar_location = carla.Location(0,0,2)
         lidar_rotation = carla.Rotation(0,0,0)
         lidar_transform = carla.Transform(lidar_location,lidar_rotation)
         lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
-        lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud))
+        lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
 
         
 
