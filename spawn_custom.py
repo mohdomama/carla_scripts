@@ -29,6 +29,8 @@ import argparse
 import logging
 from numpy import random
 
+from custom_spawn_points import CUSTOM_SPAWN_POINTS
+
 def main():
     argparser = argparse.ArgumentParser(
         description=__doc__)
@@ -93,6 +95,10 @@ def main():
         action='store_true',
         default=False,
         help='Enanble car lights')
+    argparser.add_argument(
+        '--town',
+        default='Town02',
+        help='Town for spawning custom vehicles')
     args = argparser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -159,9 +165,29 @@ def main():
         # Spawn vehicles
         # --------------
         batch = []
-        for n, transform in enumerate(spawn_points):
-            if n >= args.number_of_vehicles:
-                break
+        # for n, transform in enumerate(spawn_points):
+        #     if n >= args.number_of_vehicles:
+        #         break
+        #     blueprint = random.choice(blueprints)
+        #     if blueprint.has_attribute('color'):
+        #         color = random.choice(blueprint.get_attribute('color').recommended_values)
+        #         blueprint.set_attribute('color', color)
+        #     if blueprint.has_attribute('driver_id'):
+        #         driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
+        #         blueprint.set_attribute('driver_id', driver_id)
+        #     blueprint.set_attribute('role_name', 'autopilot')
+
+        #     # prepare the light state of the cars to spawn
+        #     light_state = vls.NONE
+        #     if args.car_lights_on:
+        #         light_state = vls.Position | vls.LowBeam | vls.LowBeam
+
+        #     # spawn the cars and set their autopilot and light state all together
+        #     batch.append(SpawnActor(blueprint, transform)
+        #         .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
+        #         .then(SetVehicleLightState(FutureActor, light_state)))
+
+        for points in CUSTOM_SPAWN_POINTS[args.town]:
             blueprint = random.choice(blueprints)
             if blueprint.has_attribute('color'):
                 color = random.choice(blueprint.get_attribute('color').recommended_values)
@@ -177,9 +203,11 @@ def main():
                 light_state = vls.Position | vls.LowBeam | vls.LowBeam
 
             # spawn the cars and set their autopilot and light state all together
+            transform = carla.Transform(carla.Location(*points['Location']), carla.Rotation(*points['Rotation']))
             batch.append(SpawnActor(blueprint, transform)
                 .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
                 .then(SetVehicleLightState(FutureActor, light_state)))
+            
 
         for response in client.apply_batch_sync(batch, synchronous_master):
             if response.error:
