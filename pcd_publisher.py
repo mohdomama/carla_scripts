@@ -9,11 +9,13 @@ import glob
 
 def point_cloud(points, parent_frame):
     ros_dtype = sensor_msgs.msg.PointField.FLOAT32
+    
     dtype = np.float32
+    
     itemsize = np.dtype(dtype).itemsize
-
+    
     data = points.astype(dtype).tobytes()
-
+    
     fields = [sensor_msgs.msg.PointField(
         name=n, offset=i*itemsize, datatype=ros_dtype, count=1)
         for i, n in enumerate('xyz')]
@@ -35,6 +37,7 @@ def point_cloud(points, parent_frame):
 
 def open3d_ply(filename):
     pcd = o3d.io.read_point_cloud(filename)
+
     pcd = np.asarray(pcd.points) 
     pcd = pcd.astype('float32')
     return pcd
@@ -42,13 +45,13 @@ def open3d_ply(filename):
 
 def main(args=None):
     rospy.init_node('maaromujhe')
-    pub_points = rospy.Publisher('maaromujhe', PointCloud2, queue_size=1)
+    pub_points = rospy.Publisher('velodyne_points', PointCloud2, queue_size=1)
     rate = rospy.Rate(30)  #hz
 
     while not rospy.is_shutdown():
         for datafile in sorted(glob.glob('lidar_output/*')):
             pcd = open3d_ply(datafile)
-            pointcloud2 = point_cloud(pcd,'map')
+            pointcloud2 = point_cloud(pcd,'camera_init')
             pub_points.publish(pointcloud2)
             rate.sleep()
         break
