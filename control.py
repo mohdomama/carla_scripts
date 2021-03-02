@@ -1,3 +1,19 @@
+""" Control ego-vehicle using keyboard.
+
+    This script enables control of the ego-vehicle. It requires launch_ego_vehicle.py to be running simultaneously in
+    a different shell. It also requires the ego-vehicle's ID, obtained from launch_ego_vehicle.py after execution. 
+
+    CONTROLS:
+        W - increase linear velocity
+        S - decrease linear velocity
+        A, D - increase angular velocity left/right respectively
+        B - break
+        R - toggle reverse (used in conjuntion with W and S)
+
+    USAGE:
+        python3 control.py 
+"""
+
 from teleop import Keyboard
 import numpy as np
 import carla
@@ -5,7 +21,6 @@ import carla
 def action_w(control):
     if control[0] < 1: control[0] += 0.05
     return control
-
 
 def action_a(control):
     if control[1] > -1: control[1] -= 0.3
@@ -15,13 +30,16 @@ def action_s(control):
     if control[0] > 0: control[0] -= 0.05
     return control
 
-
 def action_d(control):
     if control[1] < 1: control[1] += 0.3
     return control
 
 def action_r(control):
-    control[3] = 1.0
+    # press once to enable reverse driving, press again to disable
+    if control[3] == 1.0:
+        control[3] = 0.0
+    else:
+        control[3] = 1.0
     return control
 
 def action_b(control):
@@ -62,7 +80,7 @@ def main():
         elif (key == '\x03'):
             print('Control C')
             break
-        elif (key=='l'):
+        elif (key=='l' or key=='L'):
             print(ego_vehicle.get_transform())
         else:
             # Steer and break reset

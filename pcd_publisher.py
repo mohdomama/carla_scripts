@@ -1,3 +1,20 @@
+""" Publishes pointclouds to use in ROS
+
+    This script converts .ply files (obtained from launch_ego_vehicle.py) to a 
+    ROS PointCloud2 message type and publishes the same. 
+
+    REQUIREMENTS:
+        Requires rospkg, netifaces, defusedxml for Python3. 
+        Installation: 
+            pip3 install rospkg netifaces defusedxml 
+
+            OR
+
+            python3 -m pip install rospkg netifaces defusedxml 
+            
+    USAGE:
+        python3 pcd_publisher.py
+"""
 import open3d as o3d
 import numpy as np
 import rospy
