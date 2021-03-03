@@ -63,7 +63,7 @@ def open3d_ply(filename):
 def main(lidar_folder):
     rospy.init_node('maaromujhe')
     pub_points = rospy.Publisher('velodyne_points', PointCloud2, queue_size=1)
-    rate = rospy.Rate(30)  #hz
+    rate = rospy.Rate(10)  #hz
 
     while not rospy.is_shutdown():
         for datafile in sorted(glob.glob(lidar_folder + '/*')):
