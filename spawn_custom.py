@@ -50,9 +50,9 @@ def main():
     argparser.add_argument(
         '-n', '--number-of-vehicles',
         metavar='N',
-        default=10,
+        default=30,
         type=int,
-        help='number of vehicles (default: 10)')
+        help='number of vehicles (default: 30)')
     argparser.add_argument(
         '-w', '--number-of-walkers',
         metavar='W',
@@ -147,16 +147,7 @@ def main():
 
         blueprints = sorted(blueprints, key=lambda bp: bp.id)
 
-        spawn_points = world.get_map().get_spawn_points()
-        number_of_spawn_points = len(spawn_points)
-
-        if args.number_of_vehicles < number_of_spawn_points:
-            random.shuffle(spawn_points)
-        elif args.number_of_vehicles > number_of_spawn_points:
-            msg = 'requested %d vehicles, but could only find %d spawn points'
-            logging.warning(msg, args.number_of_vehicles, number_of_spawn_points)
-            args.number_of_vehicles = number_of_spawn_points
-
+        
         # @todo cannot import these directly.
         SpawnActor = carla.command.SpawnActor
         SetAutopilot = carla.command.SetAutopilot
@@ -167,27 +158,7 @@ def main():
         # Spawn vehicles
         # --------------
         batch = []
-        # for n, transform in enumerate(spawn_points):
-        #     if n >= args.number_of_vehicles:
-        #         break
-        #     blueprint = random.choice(blueprints)
-        #     if blueprint.has_attribute('color'):
-        #         color = random.choice(blueprint.get_attribute('color').recommended_values)
-        #         blueprint.set_attribute('color', color)
-        #     if blueprint.has_attribute('driver_id'):
-        #         driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
-        #         blueprint.set_attribute('driver_id', driver_id)
-        #     blueprint.set_attribute('role_name', 'autopilot')
-
-        #     # prepare the light state of the cars to spawn
-        #     light_state = vls.NONE
-        #     if args.car_lights_on:
-        #         light_state = vls.Position | vls.LowBeam | vls.LowBeam
-
-        #     # spawn the cars and set their autopilot and light state all together
-        #     batch.append(SpawnActor(blueprint, transform)
-        #         .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
-        #         .then(SetVehicleLightState(FutureActor, light_state)))
+        
 
         for points in CUSTOM_SPAWN_POINTS[args.town]:
             blueprint = random.choice(blueprints)
@@ -210,6 +181,41 @@ def main():
                 .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
                 .then(SetVehicleLightState(FutureActor, light_state)))
             
+        
+        # Randomly spawn other vehicles
+
+        spawn_points = world.get_map().get_spawn_points()
+        number_of_spawn_points = len(spawn_points)
+
+        if args.number_of_vehicles < number_of_spawn_points:
+            random.shuffle(spawn_points)
+        elif args.number_of_vehicles > number_of_spawn_points:
+            msg = 'requested %d vehicles, but could only find %d spawn points'
+            logging.warning(msg, args.number_of_vehicles, number_of_spawn_points)
+            args.number_of_vehicles = number_of_spawn_points
+
+
+        for n, transform in enumerate(spawn_points):
+            if n >= args.number_of_vehicles:
+                break
+            blueprint = random.choice(blueprints)
+            if blueprint.has_attribute('color'):
+                color = random.choice(blueprint.get_attribute('color').recommended_values)
+                blueprint.set_attribute('color', color)
+            if blueprint.has_attribute('driver_id'):
+                driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
+                blueprint.set_attribute('driver_id', driver_id)
+            blueprint.set_attribute('role_name', 'autopilot')
+
+            # prepare the light state of the cars to spawn
+            light_state = vls.NONE
+            if args.car_lights_on:
+                light_state = vls.Position | vls.LowBeam | vls.LowBeam
+
+            # spawn the cars and set their autopilot and light state all together
+            batch.append(SpawnActor(blueprint, transform)
+                .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
+                .then(SetVehicleLightState(FutureActor, light_state)))
 
         for response in client.apply_batch_sync(batch, synchronous_master):
             if response.error:
