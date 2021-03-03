@@ -1,3 +1,11 @@
+""" Launces the ego vehicle.
+
+    This script launches the ego-vechile (currently a Tesla Model 3) in Town-02. It returns an ego
+    vehicle ID to be used while controlling, using control.py.
+
+    USAGE:
+        python3 launch_ego_vehicle.py [--host] [--port] [--save_lidar_data]
+"""
 import glob
 import os
 import sys
