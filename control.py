@@ -1,7 +1,7 @@
-""" Control ego-vehicle using keyboard.
+""" Control ego-vehicles using keyboard.
 
-    This script enables control of the ego-vehicle. It requires launch_ego_vehicle.py to be running simultaneously in
-    a different shell. It also requires the ego-vehicle's ID, obtained from launch_ego_vehicle.py after execution. 
+    This script enables control of the ego-vehicles. It requires launch_ego_vehicle.py to be running simultaneously in
+    a different shell. It also requires the ego-vehicles' IDs, obtained from launch_ego_vehicle.py after execution. 
 
     CONTROLS:
         W - increase linear velocity
@@ -9,6 +9,7 @@
         A, D - increase angular velocity left/right respectively
         B - break
         R - toggle reverse (used in conjuntion with W and S)
+        L - print center ego_vehicle's location
 
     USAGE:
         python3 control.py 
@@ -64,12 +65,12 @@ def main():
 
     keyboard = Keyboard(0.05)
     control = np.array([0.0, 0.0, 0.0, 0.0])
-
-    ego_id = int(input('Enter Ego Vehicle ID:\n'))
+    num_vehicles = 9
+    ego_ids = [int(input(f'Enter Ego {x} Vehicle ID: ')) for x in range(num_vehicles)]
 
     actor_list = world.get_actors()
     
-    ego_vehicle = actor_list.find(ego_id)
+    ego_vehicles = [actor_list.find(x) for x in ego_ids]
 
     while True:
         key = keyboard.read()
@@ -81,15 +82,15 @@ def main():
             print('Control C')
             break
         elif (key=='l' or key=='L'):
-            print(ego_vehicle.get_transform())
+            print(ego_vehicles[0].get_transform())
         else:
             # Steer and break reset
             control[1] = 0
             control[2] = 0
 
         print(control)
-        ego_vehicle.apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
-
+        for i in range(num_vehicles):
+            ego_vehicles[i].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
 
 if __name__=='__main__':
     main()

@@ -86,7 +86,7 @@ def main():
     argparser.add_argument(
         '--hybrid',
         action='store_true',
-        help='Enanble')
+        help='Enable hybrid physics')
     argparser.add_argument(
         '-s', '--seed',
         metavar='S',
@@ -140,7 +140,8 @@ def main():
 
         if args.safe:
             blueprints = [x for x in blueprints if int(x.get_attribute('number_of_wheels')) == 4]
-            blueprints = [x for x in blueprints if not x.id.endswith('isetta')]
+            # remove isetta for town3
+            # blueprints = [x for x in blueprints if not x.id.endswith('isetta')] 
             blueprints = [x for x in blueprints if not x.id.endswith('carlacola')]
             blueprints = [x for x in blueprints if not x.id.endswith('cybertruck')]
             blueprints = [x for x in blueprints if not x.id.endswith('t2')]
