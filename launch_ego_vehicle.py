@@ -21,14 +21,6 @@ from teleop import Keyboard
 
 from pathlib import Path
 
-ACTION_KEYS = {
-    'w': np.array([0.05,     0, 0   ]),
-    'a': np.array([0.00, -0.05, 0   ]),
-    's': np.array([0.00,     0, 0.05]),
-    'd': np.array([0.00,  0.05, 0   ]),
-}
-
-
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
     if save_lidar_data:
         point_cloud_carla.save_to_disk(args.data_dir + '/%.6d.ply' % point_cloud_carla.frame)
@@ -37,21 +29,8 @@ def process_point_cloud(args, point_cloud_carla, save_lidar_data):
     pcd = np.copy(np.frombuffer(point_cloud_carla.raw_data, dtype=np.dtype('float32')))
     pcd = np.reshape(pcd, (int(pcd.shape[0] / 4), 4))
 
-
-def custom_spawn(world):
-    vehicles_list = []
-    for idx, transform in enumerate(spawn_points_custom):
-        try: 
-            vehicle_bp = random.choice(world.get_blueprint_library().filter('vehicle.*'))
-            vehicle = world.spawn_actor(vehicle_bp, transform)
-            vehicle.set_autopilot(True)
-            vehicles_list.append(vehicle)
-        except Exception as e:
-            print(idx)
-            print(e)
-
-    return vehicles_list
-
+def dummy_function(image):
+    pass
 
 def main():
     argparser = argparse.ArgumentParser(
@@ -87,6 +66,15 @@ def main():
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
     client.load_world('Town02')
+
+    
+    # Setting synchronous mode
+    # This is essential for proper workiong of sensors
+    world = client.get_world()
+    settings = world.get_settings()
+    settings.synchronous_mode = True
+    settings.fixed_delta_seconds = 0.05  # FPS = 1/0.05 = 20
+    world.apply_settings(settings)
 
     try:
 
@@ -161,7 +149,7 @@ def main():
         lidar_bp.set_attribute('lower_fov', str(-15))
         lidar_bp.set_attribute('upper_fov', str(15))
         lidar_bp.set_attribute('points_per_second',str(300000))
-        lidar_bp.set_attribute('noise_stddev',str(0.253))
+        lidar_bp.set_attribute('noise_stddev',str(0.173))
         # lidar_bp.set_attribute('noise_stddev',str(0.141)) Works in this case 
 
         lidar_location = carla.Location(0,0,2)
@@ -183,6 +171,8 @@ def main():
         dummy_bp = world.get_blueprint_library().find('sensor.camera.rgb')
         dummy_transform = carla.Transform(carla.Location(x=-6, z=4), carla.Rotation(pitch=10.0))
         dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicle, attachment_type=carla.AttachmentType.SpringArm)
+        dummy.listen(lambda image: dummy_function(image))
+        
         spectator = world.get_spectator()
         spectator.set_transform(dummy.get_transform())
 
@@ -197,7 +187,11 @@ def main():
         input('Press Enter to Continue:')
         count = -1
         while True:
-            world_snapshot = world.wait_for_tick() 
+            # This is for async mode
+            # world_snapshot = world.wait_for_tick() 
+            
+            # In synchronous mode, the client ticks the world
+            world.tick()
             
             count+= 1
             if count == 0:
@@ -240,10 +234,7 @@ def main():
                 dummy.stop()
                 dummy.destroy()
             ego_vehicle.destroy()
-        
-        if vehicles_list is not None:
-            for vehicle in vehicles_list:
-                vehicle.destroy()
+
 
 
 if __name__ == '__main__':

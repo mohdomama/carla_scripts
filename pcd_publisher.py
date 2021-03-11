@@ -59,15 +59,13 @@ def open3d_ply(filename):
     pcd = np.asarray(pcd.points) 
     pcd = pcd.astype('float32')
     pcd[:, 1] = -pcd[:, 1]
-    print(pcd.shape)
-    exit
     return pcd
 
 
 def main(args):
     rospy.init_node('maaromujhe')
     pub_points = rospy.Publisher('velodyne_points', PointCloud2, queue_size=1)
-    rate = rospy.Rate(5)  #hz
+    rate = rospy.Rate(30)  #hz
 
     while not rospy.is_shutdown():
         for datafile in sorted(glob.glob(args.data_dir + '/*'))[500:]:
