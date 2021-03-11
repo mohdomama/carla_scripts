@@ -63,7 +63,7 @@ def main():
         help='IP of the host server (default: 127.0.0.1)')
     argparser.add_argument(
         '--data_dir',
-        metavar='H',
+        metavar='D',
         default='lidar_output',
         help='Directory to save lidar data')
     argparser.add_argument(
@@ -156,7 +156,7 @@ def main():
         lidar_cam = None
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
-        lidar_bp.set_attribute('rotation_frequency',str(20))
+        lidar_bp.set_attribute('rotation_frequency',str(20)) # Set the fps of simulator same as this
         lidar_bp.set_attribute('range',str(20))
         lidar_bp.set_attribute('lower_fov', str(-15))
         lidar_bp.set_attribute('upper_fov', str(15))

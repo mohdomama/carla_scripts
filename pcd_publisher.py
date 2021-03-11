@@ -22,6 +22,7 @@ import sensor_msgs, std_msgs
 from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import Header
 import glob
+import argparse
 
 
 def point_cloud(points, parent_frame):
@@ -57,16 +58,19 @@ def open3d_ply(filename):
 
     pcd = np.asarray(pcd.points) 
     pcd = pcd.astype('float32')
+    pcd[:, 1] = -pcd[:, 1]
+    print(pcd.shape)
+    exit
     return pcd
 
 
-def main(args=None):
+def main(args):
     rospy.init_node('maaromujhe')
     pub_points = rospy.Publisher('velodyne_points', PointCloud2, queue_size=1)
-    rate = rospy.Rate(30)  #hz
+    rate = rospy.Rate(5)  #hz
 
     while not rospy.is_shutdown():
-        for datafile in sorted(glob.glob('lidar_output/*')):
+        for datafile in sorted(glob.glob(args.data_dir + '/*'))[500:]:
             pcd = open3d_ply(datafile)
             pointcloud2 = point_cloud(pcd,'camera_init')
             pub_points.publish(pointcloud2)
@@ -75,4 +79,13 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main()
+    argparser = argparse.ArgumentParser(
+        description=__doc__)
+    argparser.add_argument(
+        '--data_dir',
+        metavar='D',
+        help='Path where lidar files are stored')
+    args = argparser.parse_args()
+
+    
+    main(args)
