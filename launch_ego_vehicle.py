@@ -15,9 +15,11 @@ import argparse
 import logging
 import random
 import numpy as np
-
+import shutil
 from teleop import Keyboard
 # from custom_locations import spawn_points_custom
+
+from pathlib import Path
 
 ACTION_KEYS = {
     'w': np.array([0.05,     0, 0   ]),
@@ -27,9 +29,9 @@ ACTION_KEYS = {
 }
 
 
-def process_point_cloud(point_cloud_carla, save_lidar_data):
+def process_point_cloud(args, point_cloud_carla, save_lidar_data):
     if save_lidar_data:
-        point_cloud_carla.save_to_disk('lidar_output/%.6d.ply' % point_cloud_carla.frame)
+        point_cloud_carla.save_to_disk(args.data_dir + '/%.6d.ply' % point_cloud_carla.frame)
     
     # Creating a numpy array as well. To be used later    
     pcd = np.copy(np.frombuffer(point_cloud_carla.raw_data, dtype=np.dtype('float32')))
@@ -60,6 +62,11 @@ def main():
         default='127.0.0.1',
         help='IP of the host server (default: 127.0.0.1)')
     argparser.add_argument(
+        '--data_dir',
+        metavar='H',
+        default='lidar_output',
+        help='Directory to save lidar data')
+    argparser.add_argument(
         '-p', '--port',
         metavar='P',
         default=2000,
@@ -71,6 +78,9 @@ def main():
         action='store_true',
         help='To save lidar points or not'        )
     args = argparser.parse_args()
+
+    shutil.rmtree(args.data_dir) 
+    Path(args.data_dir).mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     keyboard = Keyboard(0.05)
@@ -158,7 +168,7 @@ def main():
         lidar_rotation = carla.Rotation(0,0,0)
         lidar_transform = carla.Transform(lidar_location,lidar_rotation)
         lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
-        lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
+        lidar_sen.listen(lambda point_cloud: process_point_cloud(args, point_cloud, args.save_lidar_data))
 
         
 
