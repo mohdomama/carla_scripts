@@ -79,7 +79,7 @@ def main():
         help='To save lidar points or not'        )
     args = argparser.parse_args()
 
-    shutil.rmtree(args.data_dir) 
+    shutil.rmtree(args.data_dir, ignore_errors=True) 
     Path(args.data_dir).mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
