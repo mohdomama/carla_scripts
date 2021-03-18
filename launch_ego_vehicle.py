@@ -18,9 +18,7 @@ import numpy as np
 import open3d as o3d
 
 from teleop import Keyboard
-# from custom_locations import spawn_points_custom
-
-ACTION_KEYS = {
+# from custom_locations imporigin/tight-ego-motion
     'w': np.array([0.05,     0, 0   ]),
     'a': np.array([0.00, -0.05, 0   ]),
     's': np.array([0.00,     0, 0.05]),
@@ -70,14 +68,18 @@ def main():
         '--save_lidar_data', 
         default=False, 
         action='store_true',
-        help='To save lidar points or not'        )
+        help='To save lidar points or not')
+    argparser.add_argument(
+        '--town',
+        default='Town03',
+        help='Spawn in Town01, Town02 or Town03')
     args = argparser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
-    client.load_world('Town02')
+    client.load_world(args.town)
 
     try:
 
@@ -112,16 +114,30 @@ def main():
 
         spawn_points = world.get_map().get_spawn_points()
         number_of_spawn_points = len(spawn_points)
-
+        
+        # TOWN-02
         # Near a cross road
         # ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
         #                                carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
 
         # Transform(Location(x=166.122238, y=106.114136, z=0.221694), Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
 
+        # ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
 
-        ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), 
-            carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
+        # Town03 - ego + cars in front, left and right
+        # needs hardcoding
+        # ego_transforms = [
+        #     carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        #     carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        # ]
+        ego_transform = carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
 
         ego_vehicle = world.spawn_actor(ego_bp, ego_transform)
 
