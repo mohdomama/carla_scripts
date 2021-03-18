@@ -167,20 +167,17 @@ def main():
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
         lidar_bp.set_attribute('rotation_frequency',str(20))
-        lidar_bp.set_attribute('range',str(20)) # check with range=20
+        lidar_bp.set_attribute('range',str(100)) # check with range=20
         lidar_bp.set_attribute('lower_fov', str(-15))
         lidar_bp.set_attribute('upper_fov', str(15))
         lidar_bp.set_attribute('points_per_second',str(300000))
-        lidar_bp.set_attribute('noise_stddev', str(0.253))
+        # lidar_bp.set_attribute('noise_stddev', str(0.253))
         
-
         lidar_location = carla.Location(0,0,2)
         lidar_rotation = carla.Rotation(0,0,0)
         lidar_transform = carla.Transform(lidar_location,lidar_rotation)
         lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicles[0])
         lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
-
-        
 
         # --------------
         # Enable autopilot for ego vehicle
