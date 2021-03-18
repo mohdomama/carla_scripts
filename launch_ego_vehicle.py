@@ -1,7 +1,7 @@
-""" Launces the ego vehicle.
+""" Launces the ego vehicles.
 
-    This script launches the ego-vechile (currently a Tesla Model 3) in Town-02. It returns an ego
-    vehicle ID to be used while controlling, using control.py.
+    This script launches several ego-vechiles (currently a Tesla Model 3 and Tesla Cybertrucks) in Town-03. It returns an ego
+    vehicle IDs to be used while controlling, using control.py.
 
     USAGE:
         python3 launch_ego_vehicle.py [--host] [--port] [--save_lidar_data]
@@ -79,12 +79,16 @@ def main():
     keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
+<<<<<<< HEAD
     client.load_world(args.town)
+=======
+    client.load_world('Town03')
+>>>>>>> origin/tight-ego-motion
 
     try:
 
         world = client.get_world()
-        ego_vehicle = None
+        ego_vehicles = None
         ego_cam = None
         ego_col = None
         ego_lane = None
@@ -104,22 +108,50 @@ def main():
         # --------------
         # vehicles_list = custom_spawn(world)
 
-
-        ego_bp = world.get_blueprint_library().find('vehicle.tesla.model3')
-        ego_bp.set_attribute('role_name','ego')
-        print('\nEgo role_name is set')
-        ego_color = random.choice(ego_bp.get_attribute('color').recommended_values)
-        ego_bp.set_attribute('color',ego_color)
-        print('\nEgo color is set')
+        # create n ego vehicles 
+        num_vehicles = 9
+        ego_bps = []
+        for i in range(num_vehicles):
+            ego_bps.append(world.get_blueprint_library().find('vehicle.tesla.model3'))
+        for i in range(num_vehicles):
+            ego_bps[i].set_attribute('role_name', 'ego')
+        print('\nEgo role_names are set')
+        for i in range(num_vehicles):
+            ego_color = random.choice(ego_bps[i].get_attribute('color').recommended_values)
+            ego_bps[i].set_attribute('color', ego_color)
+        print('\nEgo colors are set')
 
         spawn_points = world.get_map().get_spawn_points()
         number_of_spawn_points = len(spawn_points)
+<<<<<<< HEAD
         
         # TOWN-02
         # Near a cross road
+=======
+
+        # Town2 - Near a cross road 
+>>>>>>> origin/tight-ego-motion
         # ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
         #                                carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
+        # ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
 
+
+        # Town03 - ego + cars in front, left and right
+        # needs hardcoding
+        ego_transforms = [
+            carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+            carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+        ]
+        
+
+<<<<<<< HEAD
         # Transform(Location(x=166.122238, y=106.114136, z=0.221694), Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
 
         # ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
@@ -140,8 +172,15 @@ def main():
         ego_transform = carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
 
         ego_vehicle = world.spawn_actor(ego_bp, ego_transform)
+=======
+        # ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
+        
+        # spawn num_vehicles vehicles
+        ego_vehicles = []
+        for i in range(num_vehicles):
+            ego_vehicles.append(world.spawn_actor(ego_bps[i], ego_transforms[i]))
+>>>>>>> origin/tight-ego-motion
 
-       
         # --------------
         # Add a new LIDAR sensor to my ego
         # --------------
@@ -164,15 +203,17 @@ def main():
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
         lidar_bp.set_attribute('rotation_frequency',str(20))
-        lidar_bp.set_attribute('range',str(100))
+        lidar_bp.set_attribute('range',str(20)) # check with range=20
         lidar_bp.set_attribute('lower_fov', str(-15))
         lidar_bp.set_attribute('upper_fov', str(15))
         lidar_bp.set_attribute('points_per_second',str(300000))
+        lidar_bp.set_attribute('noise_stddev', str(0.253))
+        
 
         lidar_location = carla.Location(0,0,2)
         lidar_rotation = carla.Rotation(0,0,0)
         lidar_transform = carla.Transform(lidar_location,lidar_rotation)
-        lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
+        lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicles[0])
         lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
 
         
@@ -180,21 +221,19 @@ def main():
         # --------------
         # Enable autopilot for ego vehicle
         # --------------
-        ego_vehicle.set_autopilot(False)
+        for i in range(num_vehicles):
+            ego_vehicles[i].set_autopilot(False)        
         
         # --------------
         # Dummy Actor for spectator
         # --------------
         dummy_bp = world.get_blueprint_library().find('sensor.camera.rgb')
         dummy_transform = carla.Transform(carla.Location(x=-6, z=4), carla.Rotation(pitch=10.0))
-        dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicle, attachment_type=carla.AttachmentType.SpringArm)
+        dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicles[0], attachment_type=carla.AttachmentType.SpringArm)
         spectator = world.get_spectator()
         spectator.set_transform(dummy.get_transform())
 
-
         control = np.array([0.0, 0.0, 0.0])
-
-
 
         # --------------
         # Game loop. Prevents the script from finishing.
@@ -206,9 +245,8 @@ def main():
             
             count+= 1
             if count == 0:
-                print(ego_vehicle.get_transform())
-                print('Ego Vehicle ID is: ', ego_vehicle.id)
-         
+                [print(ego_vehicles[i].get_transform()) for i in range(num_vehicles)]
+                [print(f'Ego Vehicle {i} ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
             spectator.set_transform(dummy.get_transform())
             
     except Exception as e:
@@ -219,7 +257,7 @@ def main():
         # Stop recording and destroy actors
         # --------------
         client.stop_recorder()
-        if ego_vehicle is not None:
+        if ego_vehicles is not None:
             if ego_cam is not None:
                 ego_cam.stop()
                 ego_cam.destroy()
@@ -244,7 +282,7 @@ def main():
             if dummy is not None:
                 dummy.stop()
                 dummy.destroy()
-            ego_vehicle.destroy()
+            [ego_vehicles[i].destroy() for i in range(num_vehicles)]
         
         if vehicles_list is not None:
             for vehicle in vehicles_list:
