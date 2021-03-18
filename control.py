@@ -18,6 +18,7 @@
 from teleop import Keyboard
 import numpy as np
 import carla
+from launch_ego_vehicle import ego_transforms
 
 def action_w(control):
     if control[0] < 1: control[0] += 0.05
@@ -65,7 +66,7 @@ def main():
 
     keyboard = Keyboard(0.05)
     control = np.array([0.0, 0.0, 0.0, 0.0])
-    num_vehicles = 9
+    num_vehicles = len(ego_transforms)
     ego_ids = [int(input(f'Enter Ego {x} Vehicle ID: ')) for x in range(num_vehicles)]
 
     actor_list = world.get_actors()
