@@ -270,9 +270,11 @@ def main():
         traffic_manager.global_percentage_speed_difference(30.0)
 
         while True:
+            # # This is synchronous mode
             # if args.sync and synchronous_master:
             #     world.tick()
             #     print('Here')
+            # # This is asynchrous mode
             # else:
             #     world.wait_for_tick()
             #     print('There')

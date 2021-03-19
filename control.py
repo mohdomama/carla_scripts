@@ -1,7 +1,7 @@
-""" Control ego-vehicles using keyboard.
+""" Control ego-vehicle using keyboard.
 
-    This script enables control of the ego-vehicles. It requires launch_ego_vehicle.py to be running simultaneously in
-    a different shell. It also requires the ego-vehicles' IDs, obtained from launch_ego_vehicle.py after execution. 
+    This script enables control of the ego-vehicle. It requires launch_ego_vehicle.py to be running simultaneously in
+    a different shell. It also requires the ego-vehicle's ID, obtained from launch_ego_vehicle.py after execution. 
 
     CONTROLS:
         W - increase linear velocity
@@ -9,7 +9,6 @@
         A, D - increase angular velocity left/right respectively
         B - break
         R - toggle reverse (used in conjuntion with W and S)
-        L - print center ego_vehicle's location
 
     USAGE:
         python3 control.py 
@@ -89,6 +88,7 @@ def main():
         print(control)
         for i in range(num_vehicles):
             ego_vehicles[i].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
+
 
 if __name__=='__main__':
     main()
