@@ -77,7 +77,7 @@ def main():
         help='To save lidar points or not')
     argparser.add_argument(
         '--town',
-        default='Town02',
+        default='Town03',
         help='Spawn in Town01, Town02 or Town03'
     )
     args = argparser.parse_args()
@@ -93,7 +93,7 @@ def main():
 
     
     # Setting synchronous mode
-    # This is essential for proper workiong of sensors
+    # This is essential for proper working of sensors
     world = client.get_world()
     settings = world.get_settings()
     settings.synchronous_mode = True
@@ -256,6 +256,7 @@ def main():
             if dummy is not None:
                 dummy.stop()
                 dummy.destroy()
+            lidar_sen.destroy()
             [ego_vehicles[i].destroy() for i in range(num_vehicles)]
 
 
