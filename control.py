@@ -17,6 +17,7 @@
 from teleop import Keyboard
 import numpy as np
 import carla
+from launch_ego_vehicle import ego_transforms
 
 def action_w(control):
     if control[0] < 1: control[0] += 0.05
@@ -61,15 +62,12 @@ def main():
     client = carla.Client('127.0.0.1', 2000)
     client.set_timeout(10.0)
     world = client.get_world()
-
     keyboard = Keyboard(0.05)
     control = np.array([0.0, 0.0, 0.0, 0.0])
-
-    ego_id = int(input('Enter Ego Vehicle ID:\n'))
-
+    num_vehicles = len(ego_transforms)
+    ego_ids = [int(input(f'Enter Ego {x} Vehicle ID: ')) for x in range(num_vehicles)]
     actor_list = world.get_actors()
-    
-    ego_vehicle = actor_list.find(ego_id)
+    ego_vehicles = [actor_list.find(x) for x in ego_ids]
 
     while True:
         key = keyboard.read()
@@ -81,14 +79,15 @@ def main():
             print('Control C')
             break
         elif (key=='l' or key=='L'):
-            print(ego_vehicle.get_transform())
+            print(ego_vehicles[0].get_transform())
         else:
             # Steer and break reset
             control[1] = 0
             control[2] = 0
 
         print(control)
-        ego_vehicle.apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
+        for i in range(num_vehicles):
+            ego_vehicles[i].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
 
 
 if __name__=='__main__':
