@@ -1,10 +1,10 @@
 """ Launces the ego vehicle.
 
-    This script launches any # of ego-vehicles (currently Tesla Model 3) in Town01, Town02 or Town03 (specify arg --town). It returns ego
-    vehicle ID(s) to be used while controlling, using control.py.
+    This script launches the ego-vechile (currently a Tesla Model 3) in Town-02. It returns an ego
+    vehicle ID to be used while controlling, using control.py.
 
     USAGE:
-        python3 launch_ego_vehicle.py [--host] [--port] [--save_lidar_data] [--town]
+        python3 launch_ego_vehicle.py [--host] [--port] [--save_lidar_data]
 """
 import glob
 import os
@@ -29,15 +29,15 @@ from pathlib import Path
 # Town03 - ego + cars in front, left and right
 # define as global variable to automatically obtain # of cars in the control script
 ego_transforms = [
-    carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
-    # carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    # carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
 ]
 
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
@@ -76,6 +76,11 @@ def main():
         action='store_true',
         help='To save lidar points or not')
     argparser.add_argument(
+        '--save_gt', 
+        default=False, 
+        action='store_true',
+        help='To save ground truth or not')
+    argparser.add_argument(
         '--town',
         default='Town03',
         help='Spawn in Town01, Town02 or Town03'
@@ -86,14 +91,14 @@ def main():
     Path(args.data_dir + '/lidar').mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-    keyboard = Keyboard(0.05)
+    # keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
     client.load_world(args.town)
 
     
     # Setting synchronous mode
-    # This is essential for proper working of sensors
+    # This is essential for proper workiong of sensors
     world = client.get_world()
     settings = world.get_settings()
     settings.synchronous_mode = True
@@ -103,7 +108,7 @@ def main():
     try:
 
         world = client.get_world()
-        ego_vehicle = None
+        ego_vehicles = []
         ego_cam = None
         ego_col = None
         ego_lane = None
@@ -118,12 +123,12 @@ def main():
         client.start_recorder('~/tutorial/recorder/recording01.log')
         """
 
-       # --------------
+        # --------------
         # Spawn ego vehicle
         # --------------
         # vehicles_list = custom_spawn(world)
 
-        # create n ego vehicles 
+
         num_vehicles = len(ego_transforms)
         ego_bps = []
         for i in range(num_vehicles):
@@ -136,14 +141,12 @@ def main():
             ego_bps[i].set_attribute('color', ego_color)
         print('\nEgo colors are set')
 
-        spawn_points = world.get_map().get_spawn_points()
-        number_of_spawn_points = len(spawn_points)        
+        # spawn_points = world.get_map().get_spawn_points()
+        # number_of_spawn_points = len(spawn_points)        
         
         # spawn num_vehicles vehicles
-        ego_vehicles = []
         for i in range(num_vehicles):
             ego_vehicles.append(world.spawn_actor(ego_bps[i], ego_transforms[i]))
-
        
         # --------------
         # Add a new LIDAR sensor to my ego
@@ -163,7 +166,7 @@ def main():
         # lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
 
         # VLP 16
-        lidar_cam = None
+        # lidar_cam = None
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
         lidar_bp.set_attribute('rotation_frequency',str(20)) # Set the fps of simulator same as this
@@ -186,7 +189,7 @@ def main():
         
 
         # --------------
-        # Disable autopilot for ego vehicle
+        # Enable autopilot for ego vehicle
         # --------------
         for i in range(num_vehicles):
             ego_vehicles[i].set_autopilot(False) 
@@ -219,29 +222,24 @@ def main():
             
             count+= 1
             if count == 0:
-<<<<<<< HEAD
-                [print(ego_vehicles[i].get_transform()) for i in range(num_vehicles)]
-                [print(f'Ego Vehicle {i} ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
-         
-=======
-                start_tf = ego_vehicle.get_transform()
-                start_tf.rotation.yaw -= 5
-                print('Start TF: ', start_tf)
+                start_tfs = [ego_vehicles[i].get_transform() for i in range(num_vehicles)]
+                for i in range(num_vehicles):
+                    start_tfs[i].rotation.yaw -= 5 
+                    print(f'Start TF{i}: ', start_tfs[i])
                 # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
                 # print(start_tf.transform(start_tf.location))
-                bias_tf = start_tf.transform(ego_vehicle.get_transform().location)
-                print('\nEgo Vehicle ID is: ', ego_vehicle.id)
+                bias_tfs = [start_tfs[i].transform(ego_vehicles[i].get_transform().location) for i in range(num_vehicles)]
+                [print('\nEgo Vehicle ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
                 input('\nPress Enter to Continue:')
 
             # print(start_tf.transform(ego_vehicle.get_transform().location))
->>>>>>> upstream/master
             spectator.set_transform(dummy.get_transform())
 
             if args.save_gt:
-                vehicle_tf =  ego_vehicle.get_transform()
-                vehicle_tf_odom = start_tf.transform(vehicle_tf.location) - bias_tf
-                vehicle_tf_odom = np.array([vehicle_tf_odom.x, vehicle_tf_odom.y, vehicle_tf_odom.z])
-                gt_array.append(vehicle_tf_odom)
+                vehicle_tfs =  [ego_vehicles[i].get_transform() for i in range(num_vehicles)]
+                vehicle_tf_odoms = [start_tfs[i].transform(vehicle_tfs[i].location) - bias_tfs[i] for i in range(num_vehicles)]
+                vehicle_tf_odoms = np.array([vehicle_tf_odoms.x, vehicle_tf_odoms.y, vehicle_tf_odoms.z])
+                gt_array.append(vehicle_tf_odoms)
             
     except Exception as e:
         print(e)
@@ -256,7 +254,7 @@ def main():
         # Stop recording and destroy actors
         # --------------
         client.stop_recorder()
-        if ego_vehicle is not None:
+        if ego_vehicles is not None:
             if ego_cam is not None:
                 ego_cam.stop()
                 ego_cam.destroy()
@@ -281,7 +279,6 @@ def main():
             if dummy is not None:
                 dummy.stop()
                 dummy.destroy()
-            lidar_sen.destroy()
             [ego_vehicles[i].destroy() for i in range(num_vehicles)]
 
 
@@ -293,4 +290,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
-        print('\nDone with launch_ego_vehicle.')
+        print('\nDone with launch_multi_ego_vehicles.')
