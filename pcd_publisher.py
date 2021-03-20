@@ -31,6 +31,8 @@ import glob
 import argparse
 from roslib import message
 from rosgraph_msgs.msg import Clock
+from nav_msgs.msg import Path
+from geometry_msgs.msg import PoseStamped
 
 
 # def point_cloud(points, parent_frame):
@@ -118,21 +120,50 @@ def read_pcd(filename):
     print('[INFO] PCD Shape: ', data.shape)
     # data[np.isnan(data)] = 0.0
 
+    data = data[np.logical_not(np.any(np.isnan(data), axis=1))]
+
     return data
+
+
+def get_map(args):
+        """
+        publish the global plan
+        """
+        msg = Path()
+        msg.header.frame_id = "/map"
+        msg.header.stamp = rospy.Time.now()
+        gt_array =  np.loadtxt(args.data_dir + '/gt.csv', delimiter=',')
+        for location in gt_array:
+            pose = PoseStamped()
+            pose.pose.position.x = location[0]
+            pose.pose.position.y = -location[1]  # We have to flip pcd as well as gt about y axis in carla. Don't know why
+            pose.pose.position.z = location[2]
+            pose.pose.orientation.x = 0.0
+            pose.pose.orientation.y = 0.0
+            pose.pose.orientation.z = 0.0
+            pose.pose.orientation.w = 1.0
+            msg.poses.append(pose)
+
+        return msg
 
 
 def main(args):
     rospy.init_node(args.node)
     pub_points = rospy.Publisher(args.topic, PointCloud2, queue_size=1)
-    rate = rospy.Rate(30)  # hz
+    
+    pub_path = rospy.Publisher('gt_path', Path, queue_size=1, latch=True)
+    map_msg = get_map(args)
 
-    for datafile in sorted(glob.glob(args.data_dir + '/*'))[args.skip:]:
+
+    rate = rospy.Rate(30)  # hz
+    for datafile in sorted(glob.glob(args.data_dir + '/lidar/*'))[args.skip:]:
         frametime = rospy.Time.now()
 
         pcd = read_pcd(datafile)
         pcl2data = pcd_2_point_cloud(pcd, args.frame, frametime)
 
         pub_points.publish(pcl2data)
+        pub_path.publish(map_msg)
 
         if rospy.is_shutdown():
             print('shutdown')
