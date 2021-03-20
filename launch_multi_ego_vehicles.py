@@ -28,16 +28,28 @@ from pathlib import Path
 
 # Town03 - ego + cars in front, left and right
 # define as global variable to automatically obtain # of cars in the control script
+# ego_transforms = [
+#     carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+#     carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+# ]
+
 ego_transforms = [
-    carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+    carla.Transform(carla.Location(x=187.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=187.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=187.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=182.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=182.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=182.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=192.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=192.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=192.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
 ]
 
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
@@ -222,24 +234,23 @@ def main():
             
             count+= 1
             if count == 0:
-                start_tfs = [ego_vehicles[i].get_transform() for i in range(num_vehicles)]
-                for i in range(num_vehicles):
-                    start_tfs[i].rotation.yaw -= 5 
-                    print(f'Start TF{i}: ', start_tfs[i])
+                start_tf = ego_vehicles[0].get_transform()
+                start_tf.rotation.yaw -= 5 
+                print('Start TF: ', start_tf)
                 # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
                 # print(start_tf.transform(start_tf.location))
-                bias_tfs = [start_tfs[i].transform(ego_vehicles[i].get_transform().location) for i in range(num_vehicles)]
-                [print('\nEgo Vehicle ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
+                bias_tf = start_tf.transform(ego_vehicles[0].get_transform().location)
+                [print('Ego Vehicle ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
                 input('\nPress Enter to Continue:')
 
             # print(start_tf.transform(ego_vehicle.get_transform().location))
             spectator.set_transform(dummy.get_transform())
 
             if args.save_gt:
-                vehicle_tfs =  [ego_vehicles[i].get_transform() for i in range(num_vehicles)]
-                vehicle_tf_odoms = [start_tfs[i].transform(vehicle_tfs[i].location) - bias_tfs[i] for i in range(num_vehicles)]
-                vehicle_tf_odoms = np.array([vehicle_tf_odoms.x, vehicle_tf_odoms.y, vehicle_tf_odoms.z])
-                gt_array.append(vehicle_tf_odoms)
+                vehicle_tf =  ego_vehicles[0].get_transform()
+                vehicle_tf_odom = start_tf.transform(vehicle_tf.location) - bias_tf
+                vehicle_tf_odom = np.array([vehicle_tf_odom.x, vehicle_tf_odom.y, vehicle_tf_odom.z])
+                gt_array.append(vehicle_tf_odom)
             
     except Exception as e:
         print(e)
