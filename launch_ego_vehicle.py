@@ -23,7 +23,7 @@ from pathlib import Path
 
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
     if save_lidar_data:
-        point_cloud_carla.save_to_disk(args.data_dir + '/%.6d.ply' % point_cloud_carla.frame)
+        point_cloud_carla.save_to_disk(args.data_dir + '/lidar' +'/%.6d.ply' % point_cloud_carla.frame)
     
     # Creating a numpy array as well. To be used later    
     pcd = np.copy(np.frombuffer(point_cloud_carla.raw_data, dtype=np.dtype('float32')))
@@ -43,7 +43,7 @@ def main():
     argparser.add_argument(
         '--data_dir',
         metavar='D',
-        default='lidar_output',
+        default='lidar_output_def',
         help='Directory to save lidar data')
     argparser.add_argument(
         '-p', '--port',
@@ -55,11 +55,16 @@ def main():
         '--save_lidar_data', 
         default=False, 
         action='store_true',
-        help='To save lidar points or not'        )
+        help='To save lidar points or not')
+    argparser.add_argument(
+        '--save_gt', 
+        default=False, 
+        action='store_true',
+        help='To save ground truth or not')
     args = argparser.parse_args()
 
     shutil.rmtree(args.data_dir, ignore_errors=True) 
-    Path(args.data_dir).mkdir(parents=True, exist_ok=True)
+    Path(args.data_dir + '/lidar').mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
     keyboard = Keyboard(0.05)
@@ -145,11 +150,14 @@ def main():
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
         lidar_bp.set_attribute('rotation_frequency',str(20)) # Set the fps of simulator same as this
-        lidar_bp.set_attribute('range',str(20))
+        lidar_bp.set_attribute('range',str(50))
         lidar_bp.set_attribute('lower_fov', str(-15))
         lidar_bp.set_attribute('upper_fov', str(15))
         lidar_bp.set_attribute('points_per_second',str(300000))
-        lidar_bp.set_attribute('noise_stddev',str(0.173))
+        lidar_bp.set_attribute('dropoff_general_rate',str(0.0))
+
+        
+        # lidar_bp.set_attribute('noise_stddev',str(0.173))
         # lidar_bp.set_attribute('noise_stddev',str(0.141)) Works in this case 
 
         lidar_location = carla.Location(0,0,2)
@@ -177,14 +185,12 @@ def main():
         spectator.set_transform(dummy.get_transform())
 
 
-        control = np.array([0.0, 0.0, 0.0])
 
-
+        gt_array = []
 
         # --------------
         # Game loop. Prevents the script from finishing.
         # --------------
-        input('Press Enter to Continue:')
         count = -1
         while True:
             # This is for async mode
@@ -195,15 +201,33 @@ def main():
             
             count+= 1
             if count == 0:
-                print(ego_vehicle.get_transform())
-                print('Ego Vehicle ID is: ', ego_vehicle.id)
-         
+                start_tf = ego_vehicle.get_transform()
+                start_tf.rotation.yaw -= 5
+                print('Start TF: ', start_tf)
+                # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
+                # print(start_tf.transform(start_tf.location))
+                bias_tf = start_tf.transform(ego_vehicle.get_transform().location)
+                print('\nEgo Vehicle ID is: ', ego_vehicle.id)
+                input('\nPress Enter to Continue:')
+
+            # print(start_tf.transform(ego_vehicle.get_transform().location))
             spectator.set_transform(dummy.get_transform())
+
+            if args.save_gt:
+                vehicle_tf =  ego_vehicle.get_transform()
+                vehicle_tf_odom = start_tf.transform(vehicle_tf.location) - bias_tf
+                vehicle_tf_odom = np.array([vehicle_tf_odom.x, vehicle_tf_odom.y, vehicle_tf_odom.z])
+                gt_array.append(vehicle_tf_odom)
             
     except Exception as e:
         print(e)
 
     finally:
+
+        if args.save_gt:
+            gt_array = np.array(gt_array)
+            np.savetxt( args.data_dir + '/gt.csv', gt_array, delimiter=',')
+
         # --------------
         # Stop recording and destroy actors
         # --------------
