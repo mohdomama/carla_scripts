@@ -61,6 +61,11 @@ def main():
         default=False, 
         action='store_true',
         help='To save ground truth or not')
+    argparser.add_argument(
+        '--town',
+        default='Town03',
+        help='Spawn in Town01, Town02 or Town03'
+    )
     args = argparser.parse_args()
 
     shutil.rmtree(args.data_dir, ignore_errors=True) 
@@ -70,7 +75,7 @@ def main():
     keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
-    client.load_world('Town02')
+    client.load_world(args.town)
 
     
     # Setting synchronous mode
