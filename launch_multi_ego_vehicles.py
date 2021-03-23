@@ -18,8 +18,39 @@ import numpy as np
 import shutil
 from teleop import Keyboard
 # from custom_locations import spawn_points_custom
-
 from pathlib import Path
+
+# Town2 - Near a cross road 
+# ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
+#                                carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
+# ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
+# ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
+
+# Town03 - ego + cars in front, left and right
+# define as global variable to automatically obtain # of cars in the control script
+# ego_transforms = [
+#     carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+#     carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+# ]
+
+ego_transforms = [
+    carla.Transform(carla.Location(x=187.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=187.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=187.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=182.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=182.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=182.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=192.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=192.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    carla.Transform(carla.Location(x=192.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+]
 
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
     if save_lidar_data:
@@ -72,7 +103,7 @@ def main():
     Path(args.data_dir + '/lidar').mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-    keyboard = Keyboard(0.05)
+    # keyboard = Keyboard(0.05)
     client = carla.Client(args.host, args.port)
     client.set_timeout(10.0)
     client.load_world(args.town)
@@ -89,7 +120,7 @@ def main():
     try:
 
         world = client.get_world()
-        ego_vehicle = None
+        ego_vehicles = []
         ego_cam = None
         ego_col = None
         ego_lane = None
@@ -110,28 +141,24 @@ def main():
         # vehicles_list = custom_spawn(world)
 
 
-        ego_bp = world.get_blueprint_library().find('vehicle.tesla.model3')
-        ego_bp.set_attribute('role_name','ego')
-        print('\nEgo role_name is set')
-        ego_color = random.choice(ego_bp.get_attribute('color').recommended_values)
-        ego_bp.set_attribute('color',ego_color)
-        print('\nEgo color is set')
+        num_vehicles = len(ego_transforms)
+        ego_bps = []
+        for i in range(num_vehicles):
+            ego_bps.append(world.get_blueprint_library().find('vehicle.tesla.model3'))
+        for i in range(num_vehicles):
+            ego_bps[i].set_attribute('role_name', 'ego')
+        print('\nEgo role_names are set')
+        for i in range(num_vehicles):
+            ego_color = random.choice(ego_bps[i].get_attribute('color').recommended_values)
+            ego_bps[i].set_attribute('color', ego_color)
+        print('\nEgo colors are set')
 
-        spawn_points = world.get_map().get_spawn_points()
-        number_of_spawn_points = len(spawn_points)
-
-        # Near a cross road
-        # ego_transform = carla.Transform(carla.Location(x=-78.116066, y=-81.958496, z=-0.696164), 
-        #                                carla.Rotation(pitch=1.174273, yaw=-90.156158, roll=0.000019))
-
-        # Transform(Location(x=166.122238, y=106.114136, z=0.221694), Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
-
-
-        ego_transform = carla.Transform(carla.Location(x=166.122238, y=106.114136, z=0.821694), 
-            carla.Rotation(pitch=0.000000, yaw=-177.648560, roll=0.000014))
-
-        ego_vehicle = world.spawn_actor(ego_bp, ego_transform)
-
+        # spawn_points = world.get_map().get_spawn_points()
+        # number_of_spawn_points = len(spawn_points)        
+        
+        # spawn num_vehicles vehicles
+        for i in range(num_vehicles):
+            ego_vehicles.append(world.spawn_actor(ego_bps[i], ego_transforms[i]))
        
         # --------------
         # Add a new LIDAR sensor to my ego
@@ -151,7 +178,7 @@ def main():
         # lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
 
         # VLP 16
-        lidar_cam = None
+        # lidar_cam = None
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
         lidar_bp.set_attribute('rotation_frequency',str(20)) # Set the fps of simulator same as this
@@ -168,7 +195,7 @@ def main():
         lidar_location = carla.Location(0,0,2)
         lidar_rotation = carla.Rotation(0,0,0)
         lidar_transform = carla.Transform(lidar_location,lidar_rotation)
-        lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicle)
+        lidar_sen = world.spawn_actor(lidar_bp,lidar_transform,attach_to=ego_vehicles[0])
         lidar_sen.listen(lambda point_cloud: process_point_cloud(args, point_cloud, args.save_lidar_data))
 
         
@@ -176,14 +203,15 @@ def main():
         # --------------
         # Enable autopilot for ego vehicle
         # --------------
-        ego_vehicle.set_autopilot(False)
+        for i in range(num_vehicles):
+            ego_vehicles[i].set_autopilot(False) 
         
         # --------------
         # Dummy Actor for spectator
         # --------------
         dummy_bp = world.get_blueprint_library().find('sensor.camera.rgb')
         dummy_transform = carla.Transform(carla.Location(x=-6, z=4), carla.Rotation(pitch=10.0))
-        dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicle, attachment_type=carla.AttachmentType.SpringArm)
+        dummy = world.spawn_actor(dummy_bp, dummy_transform, attach_to=ego_vehicles[0], attachment_type=carla.AttachmentType.SpringArm)
         dummy.listen(lambda image: dummy_function(image))
         
         spectator = world.get_spectator()
@@ -206,20 +234,20 @@ def main():
             
             count+= 1
             if count == 0:
-                start_tf = ego_vehicle.get_transform()
-                start_tf.rotation.yaw -= 5
+                start_tf = ego_vehicles[0].get_transform()
+                start_tf.rotation.yaw -= 5 
                 print('Start TF: ', start_tf)
                 # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
                 # print(start_tf.transform(start_tf.location))
-                bias_tf = start_tf.transform(ego_vehicle.get_transform().location)
-                print('\nEgo Vehicle ID is: ', ego_vehicle.id)
+                bias_tf = start_tf.transform(ego_vehicles[0].get_transform().location)
+                [print('Ego Vehicle ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
                 input('\nPress Enter to Continue:')
 
             # print(start_tf.transform(ego_vehicle.get_transform().location))
             spectator.set_transform(dummy.get_transform())
 
             if args.save_gt:
-                vehicle_tf =  ego_vehicle.get_transform()
+                vehicle_tf =  ego_vehicles[0].get_transform()
                 vehicle_tf_odom = start_tf.transform(vehicle_tf.location) - bias_tf
                 vehicle_tf_odom = np.array([vehicle_tf_odom.x, vehicle_tf_odom.y, vehicle_tf_odom.z])
                 gt_array.append(vehicle_tf_odom)
@@ -237,7 +265,7 @@ def main():
         # Stop recording and destroy actors
         # --------------
         client.stop_recorder()
-        if ego_vehicle is not None:
+        if ego_vehicles is not None:
             if ego_cam is not None:
                 ego_cam.stop()
                 ego_cam.destroy()
@@ -262,7 +290,7 @@ def main():
             if dummy is not None:
                 dummy.stop()
                 dummy.destroy()
-            ego_vehicle.destroy()
+            [ego_vehicles[i].destroy() for i in range(num_vehicles)]
 
 
 
@@ -273,4 +301,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     finally:
-        print('\nDone with tutorial_ego.')
+        print('\nDone with launch_multi_ego_vehicles.')
