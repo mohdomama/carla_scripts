@@ -40,16 +40,26 @@ from pathlib import Path
 #     carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
 # ]
 
+# ego_transforms = [
+#     carla.Transform(carla.Location(x=187.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=187.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=187.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=182.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=182.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=182.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=192.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=192.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     carla.Transform(carla.Location(x=192.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+# ]
+
 ego_transforms = [
     carla.Transform(carla.Location(x=187.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=187.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=187.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=182.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=182.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=182.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=192.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=192.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-    carla.Transform(carla.Location(x=192.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+    # carla.Transform(carla.Location(x=167.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    # carla.Transform(carla.Location(x=167.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    # carla.Transform(carla.Location(x=162.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    # carla.Transform(carla.Location(x=162.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+    # carla.Transform(carla.Location(x=192.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    # carla.Transform(carla.Location(x=192.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
 ]
 
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
@@ -178,7 +188,7 @@ def main():
         # lidar_sen.listen(lambda point_cloud: process_point_cloud(point_cloud, args.save_lidar_data))
 
         # VLP 16
-        # lidar_cam = None
+        lidar_cam = None
         lidar_bp = world.get_blueprint_library().find('sensor.lidar.ray_cast')
         lidar_bp.set_attribute('channels',str(16))
         lidar_bp.set_attribute('rotation_frequency',str(20)) # Set the fps of simulator same as this
@@ -235,7 +245,7 @@ def main():
             count+= 1
             if count == 0:
                 start_tf = ego_vehicles[0].get_transform()
-                start_tf.rotation.yaw -= 5 
+                start_tf.rotation.yaw -= 3
                 print('Start TF: ', start_tf)
                 # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
                 # print(start_tf.transform(start_tf.location))

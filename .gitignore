@@ -151,7 +151,11 @@ cython_debug/
 # Local History for Visual Studio Code
 .history/
 
+# lidar data
+data/
+
 
 # Other
 lidar_output
 data
+lidar_output_def/

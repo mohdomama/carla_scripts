@@ -14,10 +14,13 @@
         python3 control.py 
 """
 
+from typing import List
 from teleop import Keyboard
 import numpy as np
 import carla
 from launch_multi_ego_vehicles import ego_transforms
+import argparse
+# from pynput.keyboard import Key, Listener
 
 def action_w(control):
     if control[0] < 1: control[0] += 0.05
@@ -47,6 +50,10 @@ def action_b(control):
     if control[1] < 1: control[2] += 0.3
     return control
 
+# class ToggleException(Exception): pass
+
+# def action_t(control):
+#     raise ToggleException 
 
 ACTION_KEYS = {
     'w': action_w,
@@ -54,20 +61,49 @@ ACTION_KEYS = {
     's': action_s,
     'd': action_d,
     'r': action_r,
-    'b': action_b,
+    'b': action_b
+    # 't': action_t
 }
 
 
 def main():
+    argparser = argparse.ArgumentParser(description=__doc__)
+    argparser.add_argument(
+        '--split_control',
+        default=True,
+        help='Control ego and other vehicles separately'
+    )
+    args = argparser.parse_args()
     client = carla.Client('127.0.0.1', 2000)
     client.set_timeout(10.0)
     world = client.get_world()
     keyboard = Keyboard(0.05)
     control = np.array([0.0, 0.0, 0.0, 0.0])
     num_vehicles = len(ego_transforms)
-    ego_ids = [int(input(f'Enter Ego {x} Vehicle ID: ')) for x in range(num_vehicles)]
+    ego_ids = []
+
+    if args.split_control:
+        steering_wheel = input('Enter E to control ego, O to control others:\n')
+
+    if steering_wheel == 'E':
+        ego_ids.append(input('Enter Ego Vehicle ID: '))
+    elif steering_wheel == 'O':
+        for i in range(1, num_vehicles):
+            ego_ids.append(input(f'Enter other vehicle {i} ID: '))
+    else:
+        ego_ids = [int(input(f'Enter Ego {x} Vehicle ID: ')) for x in range(num_vehicles)]
+    print('Total # of actors: ' + str(num_vehicles))
+    print(ego_ids)
     actor_list = world.get_actors()
+    ego_ids = [int(x) for x in ego_ids]
     ego_vehicles = [actor_list.find(x) for x in ego_ids]
+    
+    def toggle_steering_wheel(steering_wheel):
+        if steering_wheel == 'E':
+            steering_wheel = 'O'
+        else:
+            steering_wheel = 'E'
+        
 
     while True:
         key = keyboard.read()
@@ -86,8 +122,16 @@ def main():
             control[2] = 0
 
         print(control)
-        for i in range(num_vehicles):
-            ego_vehicles[i].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
+        if steering_wheel == 'E':
+            ego_vehicles[0].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
+        elif steering_wheel == 'O':
+            for i in range(len(ego_ids)):
+                ego_vehicles[i].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))                
+        elif (key == 't' or 'T'):
+            toggle_steering_wheel(steering_wheel)
+        else:
+            for i in range(num_vehicles):
+                ego_vehicles[i].apply_control(carla.VehicleControl(throttle=control[0], steer=control[1], brake=control[2], reverse=bool(control[3])))
 
 
 if __name__=='__main__':
