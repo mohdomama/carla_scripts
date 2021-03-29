@@ -121,6 +121,11 @@ def read_pcd(filename):
     # data[np.isnan(data)] = 0.0
 
     data = data[np.logical_not(np.any(np.isnan(data), axis=1))]
+    data = data[np.logical_not(np.any(np.isinf(data), axis=1))]
+
+    if np.any(np.isnan(data)) or np.any(np.isinf(data)):
+        print('Error')
+        exit()
 
     return data
 

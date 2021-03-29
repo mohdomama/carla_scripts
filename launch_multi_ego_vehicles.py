@@ -54,6 +54,10 @@ from pathlib import Path
 
 ego_transforms = [
     carla.Transform(carla.Location(x=187.220924, y=198.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+    # Narrow Road
+    # carla.Transform(carla.Location(x=-145.406204, y=105.677322, z=1.501337), carla.Rotation(pitch=0.000000, yaw=-89.725250, roll=0.000011))
+
+
     # carla.Transform(carla.Location(x=167.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
     # carla.Transform(carla.Location(x=167.220924, y=201.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
     # carla.Transform(carla.Location(x=162.220924, y=195.343231, z=3.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
@@ -244,23 +248,33 @@ def main():
             
             count+= 1
             if count == 0:
+                for i in range(10):
+                    world.tick()  # Sometimes the vehicle is spawned at a height
+                    start_tf = ego_vehicles[0].get_transform()
+
+                
+                
                 start_tf = ego_vehicles[0].get_transform()
-                start_tf.rotation.yaw -= 3
-                print('Start TF: ', start_tf)
+                tf_matrix = np.array(start_tf.get_matrix())
+                print('tf_matrix', tf_matrix)
+                start_vec = np.array([start_tf.location.x, start_tf.location.y, start_tf.location.z, 1]).reshape(-1,1)
+                print('Start Vec:', start_vec)
+
+                print('After TF:\n', np.linalg.pinv(tf_matrix) @ start_vec)
+
                 # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
                 # print(start_tf.transform(start_tf.location))
-                bias_tf = start_tf.transform(ego_vehicles[0].get_transform().location)
                 [print('Ego Vehicle ID is: ', ego_vehicles[i].id) for i in range(num_vehicles)]
-                input('\nPress Enter to Continue:')
 
             # print(start_tf.transform(ego_vehicle.get_transform().location))
             spectator.set_transform(dummy.get_transform())
 
             if args.save_gt:
                 vehicle_tf =  ego_vehicles[0].get_transform()
-                vehicle_tf_odom = start_tf.transform(vehicle_tf.location) - bias_tf
-                vehicle_tf_odom = np.array([vehicle_tf_odom.x, vehicle_tf_odom.y, vehicle_tf_odom.z])
-                gt_array.append(vehicle_tf_odom)
+                vehicle_tf_loc = np.array([vehicle_tf.location.x, vehicle_tf.location.y, vehicle_tf.location.z, 1]).reshape(-1,1)
+                vehicle_tf_odom =  np.linalg.pinv(tf_matrix) @ vehicle_tf_loc
+                gt_array.append(vehicle_tf_odom.flatten()[:-1])
+
             
     except Exception as e:
         print(e)
