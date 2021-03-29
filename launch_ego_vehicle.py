@@ -202,27 +202,34 @@ def main():
             # world_snapshot = world.wait_for_tick() 
             
             # In synchronous mode, the client ticks the world
+            
             world.tick()
             
             count+= 1
             if count == 0:
+                for i in range(10):
+                    world.tick()  # Sometimes the vehicle is spawned at a height
+                    start_tf = ego_vehicle.get_transform()
+
+                
+                
                 start_tf = ego_vehicle.get_transform()
-                start_tf.rotation.yaw -= 5
-                print('Start TF: ', start_tf)
-                # T_start = np.array(start_tf.get_inverse_matrix()) Can be used?
-                # print(start_tf.transform(start_tf.location))
-                bias_tf = start_tf.transform(ego_vehicle.get_transform().location)
+                tf_matrix = np.array(start_tf.get_matrix())
+                print(tf_matrix)
+                start_vec = np.array([start_tf.location.x, start_tf.location.y, start_tf.location.z, 1]).reshape(-1,1)
+                print('Start Vec:', start_vec)
+
+                print('After TF:\n', np.linalg.pinv(tf_matrix) @ start_vec)
                 print('\nEgo Vehicle ID is: ', ego_vehicle.id)
-                input('\nPress Enter to Continue:')
 
             # print(start_tf.transform(ego_vehicle.get_transform().location))
             spectator.set_transform(dummy.get_transform())
 
             if args.save_gt:
                 vehicle_tf =  ego_vehicle.get_transform()
-                vehicle_tf_odom = start_tf.transform(vehicle_tf.location) - bias_tf
-                vehicle_tf_odom = np.array([vehicle_tf_odom.x, vehicle_tf_odom.y, vehicle_tf_odom.z])
-                gt_array.append(vehicle_tf_odom)
+                vehicle_tf_loc = np.array([vehicle_tf.location.x, vehicle_tf.location.y, vehicle_tf.location.z, 1]).reshape(-1,1)
+                vehicle_tf_odom =  np.linalg.pinv(tf_matrix) @ vehicle_tf_loc
+                gt_array.append(vehicle_tf_odom.flatten()[:-1])
             
     except Exception as e:
         print(e)
