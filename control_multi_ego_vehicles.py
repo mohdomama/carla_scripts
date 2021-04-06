@@ -88,8 +88,7 @@ def main():
     if steering_wheel == 'E':
         ego_ids.append(input('Enter Ego Vehicle ID: '))
     elif steering_wheel == 'O':
-        for i in range(1, num_vehicles):
-            ego_ids.append(input(f'Enter other vehicle {i} ID: '))
+        ego_ids = input('Enter Other Vehicle IDs:\n').strip().split()
     else:
         ego_ids = [int(input(f'Enter Ego {x} Vehicle ID: ')) for x in range(num_vehicles)]
     print('Total # of actors: ' + str(num_vehicles))
