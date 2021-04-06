@@ -135,7 +135,7 @@ def get_map(args):
         publish the global plan
         """
         msg = Path()
-        msg.header.frame_id = "/map"
+        msg.header.frame_id = args.frame
         msg.header.stamp = rospy.Time.now()
         gt_array =  np.loadtxt(args.data_dir + '/gt.csv', delimiter=',')
         for location in gt_array:
