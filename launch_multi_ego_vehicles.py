@@ -29,15 +29,15 @@ from pathlib import Path
 # Town03 - ego + cars in front, left and right
 # define as global variable to automatically obtain # of cars in the control script
 # ego_transforms = [
-#     carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
-#     carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
-#     carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578))
+#     carla.Transform(carla.Location(x=93.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=93.220924, y=195.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=93.220924, y=201.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=85.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=85.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=85.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=100.220924, y=194.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=100.220924, y=198.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
+#     # carla.Transform(carla.Location(x=100.220924, y=202.343231, z=1.553675), carla.Rotation(pitch=-1.277402, yaw=-179.359268, roll=-0.017578)),
 # ]
 
 # ego_transforms = [
@@ -69,44 +69,82 @@ from pathlib import Path
 #     # EGO
 #     carla.Transform(carla.Location(x=-145.406204, y=105.677322, z=1.501337), carla.Rotation(pitch=0.000000, yaw=-89.725250, roll=0.000011)),
 
-#     # Traffic
-#     carla.Transform(carla.Location(x=-149.446106, y=50.746162, z=1.501142), carla.Rotation(pitch=-0.000219, yaw=-89.357307, roll=0.000015)),
-#     carla.Transform(carla.Location(x=-149.511078, y=45.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
-#     carla.Transform(carla.Location(x=-149.511078, y=40.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
-#     carla.Transform(carla.Location(x=-142.446106, y=50.746162, z=1.501142), carla.Rotation(pitch=-0.000219, yaw=-89.357307, roll=0.000015)),
-#     carla.Transform(carla.Location(x=-142.511078, y=45.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
-#     carla.Transform(carla.Location(x=-142.511078, y=40.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
+#     # # Traffic
+#     # carla.Transform(carla.Location(x=-149.446106, y=50.746162, z=1.501142), carla.Rotation(pitch=-0.000219, yaw=-89.357307, roll=0.000015)),
+#     # carla.Transform(carla.Location(x=-149.511078, y=45.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
+#     # carla.Transform(carla.Location(x=-149.511078, y=40.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
+#     # carla.Transform(carla.Location(x=-142.446106, y=50.746162, z=1.501142), carla.Rotation(pitch=-0.000219, yaw=-89.357307, roll=0.000015)),
+#     # carla.Transform(carla.Location(x=-142.511078, y=45.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
+#     # carla.Transform(carla.Location(x=-142.511078, y=40.975445, z=1.501333), carla.Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014)),
+# ]
+
+
+
+# ego_transforms =[
+#     # Inclination
+
+#     # EGO
+#     carla.Transform(carla.Location(x=-36.135696, y=-143.153244, z=1.001348), carla.Rotation(pitch=-0.001434, yaw=1.013101, roll=0.000015))
+# ]
+
+
+# ego_transforms =[
+#     # Plane Wall Lane, Feature Lane Scene
+
+#     # Ego
+#     # carla.Transform(carla.Location(x=60.692669, y=-10.527537, z=1.501337), carla.Rotation(pitch=0.000382, yaw=-178.177094, roll=0.000015)),
+#     carla.Transform(carla.Location(x=-22.200941, y=-11.201141, z=1.501347), carla.Rotation(pitch=-0.001311, yaw=-41.370190, roll=0.000016)),
+
+# ]
+
+# ego_transforms = [
+#     # Wide intersection scene scene 
+
+#     # ego
+#     carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=2.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
+    
+#     # Close to building
+#     # carla.Transform(carla.Location(x=-71.104912, y=116.512695, z=1.513339), carla.Rotation(pitch=0.662153, yaw=-88.713875, roll=0.070444)),
+
+#     # traffic
+#     # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
+#     # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
+#     # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
+#     # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
+#     # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
+#     # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054))
+# ]
+
+# ego_transforms = [
+#     # Wide plane road, vehicles ahead
+
+#     # Ego
+#     carla.Transform(carla.Location(x=150.072968, y=200.271362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+
+#     carla.Transform(carla.Location(x=140.072968, y=206.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+#     carla.Transform(carla.Location(x=135.072968, y=206.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+#     carla.Transform(carla.Location(x=130.072968, y=206.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+
+#     carla.Transform(carla.Location(x=140.072968, y=193.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+#     carla.Transform(carla.Location(x=135.072968, y=193.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+#     carla.Transform(carla.Location(x=130.072968, y=193.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
 # ]
 
 ego_transforms = [
-    # phat road scene 
+    # Wide plane road, vehicles with
 
-    # ego
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=2.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
-    # Close to building
-    # carla.Transform(carla.Location(x=-71.104912, y=116.512695, z=1.513339), carla.Rotation(pitch=0.662153, yaw=-88.713875, roll=0.070444)),
+    # Ego
+    carla.Transform(carla.Location(x=155.072968, y=200.271362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
 
-    # solid wall
-    # carla.Transform(carla.Location(x=60.692669, y=-10.527537, z=1.501337), carla.Rotation(pitch=0.000382, yaw=-178.177094, roll=0.000015)),
-    carla.Transform(carla.Location(x=-22.200941, y=-11.201141, z=1.501347), carla.Rotation(pitch=-0.001311, yaw=-41.370190, roll=0.000016)),
+    carla.Transform(carla.Location(x=160.072968, y=206.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+    carla.Transform(carla.Location(x=155.072968, y=206.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+    carla.Transform(carla.Location(x=150.072968, y=206.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
 
-
-
-    # traffic
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054)),
-    # carla.Transform(carla.Location(x=-78.722710, y=168.484650, z=1.501263), carla.Rotation(pitch=-0.001468, yaw=-89.411835, roll=0.004054))
+    carla.Transform(carla.Location(x=160.072968, y=193.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+    carla.Transform(carla.Location(x=155.072968, y=193.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
+    carla.Transform(carla.Location(x=150.072968, y=193.871362, z=3.684593), carla.Rotation(pitch=-1.183624, yaw=179.648993, roll=-0.084534)),
 ]
-'''
-Transform(Location(x=-149.446106, y=66.746162, z=0.001142), Rotation(pitch=-0.000219, yaw=-89.357307, roll=0.000015))
-Transform(Location(x=-149.511078, y=60.975445, z=0.001333), Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014))
-Transform(Location(x=-149.511078, y=54.975445, z=0.001333), Rotation(pitch=0.001079, yaw=-89.357307, roll=0.000014))
 
-
-'''
 def process_point_cloud(args, point_cloud_carla, save_lidar_data):
     if save_lidar_data:
         point_cloud_carla.save_to_disk(args.data_dir + '/lidar' +'/%.6d.ply' % point_cloud_carla.frame)
@@ -290,7 +328,7 @@ def main():
             
             count+= 1
             if count == 0:
-                for i in range(10):
+                for i in range(50):
                     world.tick()  # Sometimes the vehicle is spawned at a height
                     start_tf = ego_vehicles[0].get_transform()
 
