@@ -14,10 +14,11 @@
             
     USAGE:
         [FOR ALOAM]
-        python pcd_publisher.py --data_dir=lidar_output/dynamic2 --topic=velodyne_points --frame=camera_init
+        python pcd_publisher.py --data_dir=lidar_output_def --lidar_frame=camera_init --path_frame=camera_init --skip=100
 
         [FRO LEGO_LOAM]
-        python pcd_publisher.py --data_dir=lidar_output/dynamic2 --topic=velodyne_points --frame=velodyne
+        python pcd_publisher.py --data_dir=lidar_output_def --lidar_frame=velodyne --path_frame=map --skip=100
+        # These are the defualt settings as well
 
 """
 import open3d as o3d
@@ -135,7 +136,7 @@ def get_map(args):
         publish the global plan
         """
         msg = Path()
-        msg.header.frame_id = args.frame
+        msg.header.frame_id = args.path_frame
         msg.header.stamp = rospy.Time.now()
         gt_array =  np.loadtxt(args.data_dir + '/gt.csv', delimiter=',')
         for location in gt_array:
@@ -165,7 +166,7 @@ def main(args):
         frametime = rospy.Time.now()
 
         pcd = read_pcd(datafile)
-        pcl2data = pcd_2_point_cloud(pcd, args.frame, frametime)
+        pcl2data = pcd_2_point_cloud(pcd, args.lidar_frame, frametime)
 
         pub_points.publish(pcl2data)
         pub_path.publish(map_msg)
@@ -182,20 +183,28 @@ if __name__ == '__main__':
     argparser.add_argument(
         '--data_dir',
         metavar='D',
-        help='Path where lidar files are stored')
+        help='Path where lidar files are stored',
+        default='lidar_output_def',)
     argparser.add_argument(
         '--node',
         metavar='N',
         default='pcd_publisher',
         help='Name of the node that will publish data')
     argparser.add_argument(
-        '--frame',
+        '--lidar_frame',
         metavar='F',
-        help='Frame of the points being published')
+        help='Frame of the points being published',
+        default='velodyne',)
+    argparser.add_argument(
+        '--path_frame',
+        metavar='F',
+        help='Frame of the points being published',
+        default='map',)
     argparser.add_argument(
         '--topic',
         metavar='T',
-        help='Topic at which the data will be published')
+        help='Topic at which the data will be published',
+        default='velodyne_points',)
     argparser.add_argument(
         '--skip',
         metavar='S',
